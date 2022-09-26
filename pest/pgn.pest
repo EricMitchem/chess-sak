@@ -1,0 +1,37 @@
+space = _{ " " }
+
+tag_start = _{ "[" }
+tag_end = _{ "]" }
+tag_name = { ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "_")* }
+tag_value_char = _{ !("\"" | "\\") ~ ANY }
+tag_value_quote = _{ "\\\"" }
+tag_value_backslash = _{ "\\\\" }
+tag_value_normal = _{ tag_value_char+ }
+tag_value_special = _{ (tag_value_char | tag_value_quote | tag_value_backslash)+ }
+tag_value = { tag_value_normal | tag_value_special }
+
+event_tag = { tag_start ~ "Event" ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+site_tag = { tag_start ~ "Site" ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+date_tag = { tag_start ~ "Date" ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+round_tag = { tag_start ~ "Round" ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+white_tag = { tag_start ~ "White" ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+black_tag = { tag_start ~ "Black" ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+result_tag = { tag_start ~ "Result" ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+optional_tag = { tag_start ~ tag_name ~ space ~ "\"" ~ tag_value ~ "\"" ~ tag_end ~ NEWLINE }
+
+seven_tag_roster = { event_tag ~ site_tag ~ date_tag ~ round_tag ~ white_tag ~ black_tag ~ result_tag }
+optional_tags = { optional_tag+ }
+tag_pairs = { seven_tag_roster ~ optional_tags? }
+
+movetext_comment_start = _{ "{" }
+movetext_comment_end = _{ "}" }
+movetext_comment_char = _{ !movetext_comment_end ~ ANY }
+movetext_comment = _{ movetext_comment_start ~ movetext_comment_char* ~ movetext_comment_end }
+movetext_termination = _{ "1-0" | "0-1" | "1/2-1/2" | "*" }
+movetext_body = _{ (movetext_comment | !movetext_termination ~ ANY)+ }
+movetext = { movetext_body? ~ movetext_termination ~ NEWLINE }
+
+pgn_game = { tag_pairs ~ NEWLINE ~ movetext ~ NEWLINE }
+
+// Does anyone actually use this?
+// escape_line = _{ "%" ~ (!NEWLINE ~ ANY)* ~ NEWLINE }
